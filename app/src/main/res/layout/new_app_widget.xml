@@ -1,0 +1,54 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.Practice1.AppWidget.Container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:theme="@style/Theme.Practice1.AppWidgetContainer">
+
+    <TextView
+        android:id="@+id/appwidget_text"
+        style="@style/Widget.Practice1.AppWidget.InnerView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_margin="8dp"
+        android:contentDescription="@string/appwidget_text"
+        android:text="@string/appwidget_text"
+        android:textSize="24sp"
+        android:textStyle="bold|italic"
+        tools:text="Practice1" />
+
+    <EditText
+        android:id="@+id/editTextText3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/appwidget_text"
+        android:layout_alignBottom="@+id/appwidget_text"
+        android:layout_marginEnd="-92dp"
+        android:layout_marginBottom="409dp"
+        android:ems="10"
+        android:inputType="text"
+        android:text="Name" />
+
+    <EditText
+        android:id="@+id/editTextTextPassword4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/appwidget_text"
+        android:layout_alignBottom="@+id/appwidget_text"
+        android:layout_marginEnd="37dp"
+        android:layout_marginBottom="285dp"
+        android:ems="10"
+        android:inputType="textPassword" />
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/appwidget_text"
+        android:layout_alignBottom="@+id/appwidget_text"
+        android:layout_marginEnd="46dp"
+        android:layout_marginBottom="139dp"
+        android:text="Button" />
+
+</RelativeLayout>
