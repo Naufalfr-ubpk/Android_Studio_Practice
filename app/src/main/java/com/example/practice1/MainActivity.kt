@@ -23,9 +23,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
@@ -39,6 +41,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -61,12 +64,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            Practice1Theme {
+            var isDarkMode by remember { mutableStateOf(false) }
+
+            Practice1Theme(darkTheme = isDarkMode) {
                 var currentScreen by remember { mutableStateOf("onboarding") }
 
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = Color(0xFFF2FCEB)
+                    color = if (isDarkMode) Color(0xFF121212) else Color(0xFFF2FCEB)
                 ) {
                     when (currentScreen) {
                         "onboarding" -> ModernOnboardingScreen(onNavigate = { currentScreen = "auth" })
@@ -74,7 +79,11 @@ class MainActivity : ComponentActivity() {
                             onNavigateBack = { currentScreen = "onboarding" },
                             onLoginSuccess = { currentScreen = "main" }
                         )
-                        "main" -> MainScreen(onLogout = { currentScreen = "auth" })
+                        "main" -> MainScreen(
+                            onLogout = { currentScreen = "auth" },
+                            isDarkMode = isDarkMode,
+                            onThemeChange = { isDarkMode = it }
+                        )
                     }
                 }
             }
@@ -260,34 +269,46 @@ fun AuthScreen(onNavigateBack: () -> Unit, onLoginSuccess: () -> Unit) {
 // 4. KODE MAIN SCREEN & HOME SCREEN
 // ==========================================
 @Composable
-fun MainScreen(onLogout: () -> Unit) {
+fun MainScreen(onLogout: () -> Unit, isDarkMode: Boolean, onThemeChange: (Boolean) -> Unit) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var selectedProduct by remember { mutableStateOf<Product?>(null) }
+
+    val bgColor = if (isDarkMode) Color(0xFF121212) else Color(0xFFF9F9F9)
+    val bottomBarColor = if (isDarkMode) Color(0xFF1E1E1E) else Color.White
+    val indicatorColor = if (isDarkMode) Color(0xFF2C2C2C) else Color(0xFFF2FCEB)
+    val textColor = if (isDarkMode) Color.White else VFreshDark
 
     if (selectedProduct != null) {
         ProductDetailScreen(
             product = selectedProduct!!,
-            onBack = { selectedProduct = null }
+            onBack = { selectedProduct = null },
+            isDarkMode = isDarkMode
         )
     } else {
         Scaffold(
             bottomBar = {
-                NavigationBar(containerColor = Color.White, tonalElevation = 8.dp) {
-                    NavigationBarItem(selected = selectedTab == 0, onClick = { selectedTab = 0 }, icon = { Icon(Icons.Default.Home, contentDescription = "Beranda", modifier = Modifier.size(30.dp)) }, label = { Text("Beranda", fontFamily = NunitoFont, fontWeight = FontWeight.Bold, fontSize = 14.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = VFreshPrimary, selectedTextColor = VFreshPrimary, unselectedIconColor = Color.Gray, unselectedTextColor = Color.Gray, indicatorColor = Color(0xFFF2FCEB)))
-                    NavigationBarItem(selected = selectedTab == 1, onClick = { selectedTab = 1 }, icon = { Icon(Icons.Default.Notifications, contentDescription = "Notifikasi", modifier = Modifier.size(30.dp)) }, label = { Text("Notifikasi", fontFamily = NunitoFont, fontWeight = FontWeight.Bold, fontSize = 14.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = VFreshPrimary, selectedTextColor = VFreshPrimary, unselectedIconColor = Color.Gray, unselectedTextColor = Color.Gray, indicatorColor = Color(0xFFF2FCEB)))
-                    NavigationBarItem(selected = selectedTab == 2, onClick = { selectedTab = 2 }, icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Pesanan", modifier = Modifier.size(30.dp)) }, label = { Text("Pesanan", fontFamily = NunitoFont, fontWeight = FontWeight.Bold, fontSize = 14.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = VFreshPrimary, selectedTextColor = VFreshPrimary, unselectedIconColor = Color.Gray, unselectedTextColor = Color.Gray, indicatorColor = Color(0xFFF2FCEB)))
-                    NavigationBarItem(selected = selectedTab == 3, onClick = { selectedTab = 3 }, icon = { Icon(Icons.Default.Person, contentDescription = "Akun", modifier = Modifier.size(30.dp)) }, label = { Text("Akun", fontFamily = NunitoFont, fontWeight = FontWeight.Bold, fontSize = 14.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = VFreshPrimary, selectedTextColor = VFreshPrimary, unselectedIconColor = Color.Gray, unselectedTextColor = Color.Gray, indicatorColor = Color(0xFFF2FCEB)))
+
+                // Slide 5: Bottom Navigation View
+                NavigationBar(containerColor = bottomBarColor, tonalElevation = 8.dp) {
+                    NavigationBarItem(
+                        selected = selectedTab == 0,
+                // ============================================
+
+                        onClick = { selectedTab = 0 }, icon = { Icon(Icons.Default.Home, contentDescription = "Beranda", modifier = Modifier.size(30.dp)) }, label = { Text("Beranda", fontFamily = NunitoFont, fontWeight = FontWeight.Bold, fontSize = 14.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = VFreshPrimary, selectedTextColor = VFreshPrimary, unselectedIconColor = Color.Gray, unselectedTextColor = Color.Gray, indicatorColor = indicatorColor))
+                    NavigationBarItem(selected = selectedTab == 1, onClick = { selectedTab = 1 }, icon = { Icon(Icons.Default.Notifications, contentDescription = "Notifikasi", modifier = Modifier.size(30.dp)) }, label = { Text("Notifikasi", fontFamily = NunitoFont, fontWeight = FontWeight.Bold, fontSize = 14.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = VFreshPrimary, selectedTextColor = VFreshPrimary, unselectedIconColor = Color.Gray, unselectedTextColor = Color.Gray, indicatorColor = indicatorColor))
+                    NavigationBarItem(selected = selectedTab == 2, onClick = { selectedTab = 2 }, icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Pesanan", modifier = Modifier.size(30.dp)) }, label = { Text("Pesanan", fontFamily = NunitoFont, fontWeight = FontWeight.Bold, fontSize = 14.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = VFreshPrimary, selectedTextColor = VFreshPrimary, unselectedIconColor = Color.Gray, unselectedTextColor = Color.Gray, indicatorColor = indicatorColor))
+                    NavigationBarItem(selected = selectedTab == 3, onClick = { selectedTab = 3 }, icon = { Icon(Icons.Default.Person, contentDescription = "Akun", modifier = Modifier.size(30.dp)) }, label = { Text("Akun", fontFamily = NunitoFont, fontWeight = FontWeight.Bold, fontSize = 14.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = VFreshPrimary, selectedTextColor = VFreshPrimary, unselectedIconColor = Color.Gray, unselectedTextColor = Color.Gray, indicatorColor = indicatorColor))
                 }
             }
         ) { innerPadding ->
-            Box(modifier = Modifier.fillMaxSize().padding(innerPadding).background(Color(0xFFF9F9F9))) {
+            Box(modifier = Modifier.fillMaxSize().padding(innerPadding).background(bgColor)) {
                 when (selectedTab) {
-                    0 -> HomeScreen(onProductClick = { product -> selectedProduct = product })
-                    1 -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Halaman Notifikasi", fontFamily = PoppinsFont, color = VFreshDark) }
-                    2 -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Halaman Pesanan", fontFamily = PoppinsFont, color = VFreshDark) }
+                    0 -> HomeScreen(onProductClick = { product -> selectedProduct = product }, isDarkMode = isDarkMode, onThemeChange = onThemeChange)
+                    1 -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Halaman Notifikasi", fontFamily = PoppinsFont, color = textColor) }
+                    2 -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Halaman Pesanan", fontFamily = PoppinsFont, color = textColor) }
                     3 -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Ini Halaman Akun", fontFamily = PoppinsFont, color = VFreshDark)
+                            Text("Ini Halaman Akun", fontFamily = PoppinsFont, color = textColor)
                             Spacer(modifier = Modifier.height(24.dp))
                             Button(onClick = onLogout, colors = ButtonDefaults.buttonColors(containerColor = Color.Red)) { Text("Logout", color = Color.White) }
                         }
@@ -298,9 +319,12 @@ fun MainScreen(onLogout: () -> Unit) {
     }
 }
 
+// ==========================================
+// 4. KODE HOME SCREEN
+// ==========================================
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
-fun HomeScreen(onProductClick: (Product) -> Unit) {
+fun HomeScreen(onProductClick: (Product) -> Unit, isDarkMode: Boolean, onThemeChange: (Boolean) -> Unit) {
     val focusManager = LocalFocusManager.current
     val coroutineScope = rememberCoroutineScope()
     val gridState = androidx.compose.foundation.lazy.grid.rememberLazyGridState()
@@ -323,6 +347,12 @@ fun HomeScreen(onProductClick: (Product) -> Unit) {
         }
     }
 
+    // Dynamic Colors untuk Dark Mode
+    val surfaceColor = if (isDarkMode) Color(0xFF1E1E1E) else Color.White
+    val searchBarColor = if (isDarkMode) Color(0xFF2C2C2C) else Color.White
+    val textColor = if (isDarkMode) Color.White else Color.Black
+    val textColorDark = if (isDarkMode) Color.White else VFreshDark
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -334,7 +364,7 @@ fun HomeScreen(onProductClick: (Product) -> Unit) {
             }
     ) {
         // 1. HEADER
-        Surface(color = Color.White, shadowElevation = 2.dp, modifier = Modifier.fillMaxWidth()) {
+        Surface(color = surfaceColor, shadowElevation = 2.dp, modifier = Modifier.fillMaxWidth()) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -343,6 +373,7 @@ fun HomeScreen(onProductClick: (Product) -> Unit) {
                     .offset(y = (-4).dp)
                     .fillMaxWidth()
             ) {
+                // IKON FAVORIT
                 IconButton(onClick = { /* TODO Favorit */ }, modifier = Modifier.size(40.dp)) {
                     Icon(
                         Icons.Default.Favorite,
@@ -352,21 +383,22 @@ fun HomeScreen(onProductClick: (Product) -> Unit) {
                     )
                 }
 
-                Spacer(modifier = Modifier.width(10.dp))
+                Spacer(modifier = Modifier.width(4.dp))
 
+                // SEARCH BAR CUSTOM
                 Surface(
                     shape = CircleShape,
                     shadowElevation = 3.dp,
-                    color = Color.White,
+                    color = searchBarColor,
                     modifier = Modifier
-                        .weight(0.85f)
+                        .weight(0.60f)
                         .height(50.dp)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        Spacer(modifier = Modifier.width(14.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
 
                         Icon(
                             Icons.Default.Search,
@@ -375,12 +407,10 @@ fun HomeScreen(onProductClick: (Product) -> Unit) {
                             modifier = Modifier
                                 .size(24.dp)
                                 .clip(CircleShape)
-                                .clickable {
-                                    performSearchAndScroll()
-                                }
+                                .clickable { performSearchAndScroll() }
                         )
 
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
 
                         Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
                             if (searchQuery.value.isEmpty()) {
@@ -388,38 +418,94 @@ fun HomeScreen(onProductClick: (Product) -> Unit) {
                                     text = "Cari yang anda mau ...",
                                     fontFamily = NunitoFont,
                                     color = Color.Gray,
-                                    fontSize = 15.sp
+                                    fontSize = 15.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                             androidx.compose.foundation.text.BasicTextField(
                                 value = searchQuery.value,
                                 onValueChange = {
                                     searchQuery.value = it
-                                    if (it.isEmpty()) {
-                                        submittedQuery.value = ""
-                                    }
+                                    if (it.isEmpty()) { submittedQuery.value = "" }
                                 },
-                                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 15.sp, fontFamily = NunitoFont, color = Color.Black),
+                                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 15.sp, fontFamily = NunitoFont, color = textColor),
                                 singleLine = true,
-                                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                                    imeAction = androidx.compose.ui.text.input.ImeAction.Search
-                                ),
-                                keyboardActions = androidx.compose.foundation.text.KeyboardActions(
-                                    onSearch = { performSearchAndScroll() }
-                                ),
+                                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(imeAction = androidx.compose.ui.text.input.ImeAction.Search),
+                                keyboardActions = androidx.compose.foundation.text.KeyboardActions(onSearch = { performSearchAndScroll() }),
                                 modifier = Modifier.fillMaxWidth()
                             )
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.width(10.dp))
+                Spacer(modifier = Modifier.width(4.dp))
 
+                // IKON KERANJANG
                 IconButton(onClick = { /* TODO Cart */ }, modifier = Modifier.size(40.dp)) {
                     Icon(Icons.Default.ShoppingCart, contentDescription = "Keranjang", tint = VFreshPrimary, modifier = Modifier.size(28.dp))
                 }
 
-                Spacer(modifier = Modifier.weight(0.15f))
+                // SWITCH COMPAT (DARK MODE TOGGLE) - DIBUNGKUS BOX BUAT SHADOW LABEL
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.padding(start = 4.dp)
+                ) {
+                    // Trik Latar Belakang (Fake Track) buat ngasih Shadow ke Label
+                    if (!isDarkMode) {
+                        Surface(
+                            modifier = Modifier
+                                .width(54.dp) // Dilebarin dikit menyesuaikan panjang asli Switch
+                                .height(32.dp),
+                            shape = CircleShape,
+                            shadowElevation = 4.dp,
+                            color = Color.White
+                        ) {}
+                    }
+
+                    // Slide 2: Switch Compat
+                    Switch(
+                        checked = isDarkMode,
+                        onCheckedChange = { onThemeChange(it) },
+                        modifier = Modifier, // Hapus scale di sini karena udah di Box Parent
+                        thumbContent = {
+                        // =======================================
+
+                            // TOMBOL (Thumb) - UDAH ADA SHADOW 3.dp!
+                            Box(
+                                modifier = Modifier
+                                    .size(SwitchDefaults.IconSize)
+                                    .shadow(elevation = 3.dp, shape = CircleShape)
+                                    .background(if (isDarkMode) Color(0xFF2C2C2C) else Color.White, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (isDarkMode) {
+                                    Icon(
+                                        imageVector = Icons.Default.DarkMode,
+                                        contentDescription = "Bulan",
+                                        tint = Color(0xFFE0B0FF),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Default.LightMode,
+                                        contentDescription = "Matahari",
+                                        tint = Color(0xFFFFD700),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.Transparent,
+                            uncheckedThumbColor = Color.Transparent,
+                            checkedTrackColor = Color(0xFF4B0082).copy(alpha = 0.5f),
+                            uncheckedTrackColor = Color.Transparent, // Dibikin transparan nembus ke fake track putih
+                            uncheckedBorderColor = Color.Transparent,
+                            checkedBorderColor = Color.Transparent
+                        )
+                    )
+                }
             }
         }
 
@@ -433,7 +519,7 @@ fun HomeScreen(onProductClick: (Product) -> Unit) {
             modifier = Modifier.fillMaxSize()
         ) {
 
-            // 5. CAROUSEL BANNER
+            // CAROUSEL BANNER
             item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(2) }) {
                 val bannerImages = listOf(R.drawable.img_promo, R.drawable.img_promo2)
                 val pagerState = rememberPagerState(pageCount = { bannerImages.size })
@@ -485,7 +571,7 @@ fun HomeScreen(onProductClick: (Product) -> Unit) {
                     ) {
                         Card(
                             shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            colors = CardDefaults.cardColors(containerColor = surfaceColor),
                             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                             modifier = Modifier.fillMaxWidth().clickable { /* TODO Filter Sayur */ }
                         ) {
@@ -500,7 +586,7 @@ fun HomeScreen(onProductClick: (Product) -> Unit) {
                             )
                         }
                         Spacer(modifier = Modifier.height(10.dp))
-                        Text("Sayur", fontFamily = PoppinsFont, fontWeight = FontWeight.Bold, fontSize = 17.sp, color = VFreshDark)
+                        Text("Sayur", fontFamily = PoppinsFont, fontWeight = FontWeight.Bold, fontSize = 17.sp, color = textColorDark)
                     }
 
                     Column(
@@ -509,7 +595,7 @@ fun HomeScreen(onProductClick: (Product) -> Unit) {
                     ) {
                         Card(
                             shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            colors = CardDefaults.cardColors(containerColor = surfaceColor),
                             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                             modifier = Modifier.fillMaxWidth().clickable { /* TODO Filter Buah */ }
                         ) {
@@ -524,12 +610,12 @@ fun HomeScreen(onProductClick: (Product) -> Unit) {
                             )
                         }
                         Spacer(modifier = Modifier.height(10.dp))
-                        Text("Buah", fontFamily = PoppinsFont, fontWeight = FontWeight.Bold, fontSize = 17.sp, color = VFreshDark)
+                        Text("Buah", fontFamily = PoppinsFont, fontWeight = FontWeight.Bold, fontSize = 17.sp, color = textColorDark)
                     }
                 }
             }
 
-            // 6. TEKS REKOMENDASI
+            // TEKS REKOMENDASI
             item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(2) }) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -541,7 +627,7 @@ fun HomeScreen(onProductClick: (Product) -> Unit) {
                         fontFamily = PoppinsFont,
                         fontWeight = FontWeight.ExtraBold,
                         fontSize = 20.sp,
-                        color = Color.Black,
+                        color = textColor,
                         textAlign = TextAlign.Center,
                         textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline
                     )
@@ -549,7 +635,7 @@ fun HomeScreen(onProductClick: (Product) -> Unit) {
                 }
             }
 
-            // 7. LIST PRODUK ATAU PERINGATAN KOSONG
+            // LIST PRODUK ATAU PERINGATAN KOSONG
             if (displayedProducts.isEmpty()) {
                 item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(2) }) {
                     Column(
@@ -573,7 +659,8 @@ fun HomeScreen(onProductClick: (Product) -> Unit) {
                 items(displayedProducts) { product ->
                     ProductCard(
                         product = product,
-                        onProductClick = { onProductClick(product) }
+                        onProductClick = { onProductClick(product) },
+                        isDarkMode = isDarkMode
                     )
                 }
             }
@@ -587,14 +674,21 @@ fun HomeScreen(onProductClick: (Product) -> Unit) {
 @Composable
 fun ProductCard(
     product: Product,
-    onProductClick: () -> Unit
+    onProductClick: () -> Unit,
+    isDarkMode: Boolean
 ) {
+    val cardColor = if (isDarkMode) Color(0xFF1E1E1E) else Color.White
+    val textColor = if (isDarkMode) Color.White else Color.Black
+
+    // Slide 3: Ripple Effects
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onProductClick() },
+        // =========================================
+
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = cardColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column {
@@ -605,7 +699,7 @@ fun ProductCard(
                 modifier = Modifier.fillMaxWidth().height(130.dp)
             )
             Column(modifier = Modifier.padding(12.dp)) {
-                Text(text = product.name, fontFamily = PoppinsFont, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = Color.Black, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(text = product.name, fontFamily = PoppinsFont, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = textColor, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Rp ${product.price} / 1 kg",
@@ -633,10 +727,9 @@ fun ProductCard(
 // ==========================================
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProductDetailScreen(product: Product, onBack: () -> Unit) {
+fun ProductDetailScreen(product: Product, onBack: () -> Unit, isDarkMode: Boolean) {
     val context = LocalContext.current
 
-    // Hardcode Color Mapping buat Latar Gambar
     val itemColors = mapOf(
         "Kentang" to Color(0xFFF4D4A5),
         "Kol" to Color(0xFFB4E179),
@@ -650,11 +743,24 @@ fun ProductDetailScreen(product: Product, onBack: () -> Unit) {
         "Pisang" to Color(0xFFF5D791)
     )
 
-    // Ambil warna latar dari map, default Hijau Muda
     val headerBackgroundColor = itemColors[product.name] ?: Color(0xFFE8F5E9)
 
-    // Handle tombol back bawaan sistem HP Android
     BackHandler { onBack() }
+
+    // ==========================================
+    // Slide 1: Extract Colour Palette
+    // ==========================================
+    var vibrantColor by remember { mutableStateOf(Color.White) }
+
+    LaunchedEffect(product.imageRes) {
+        val bitmap = BitmapFactory.decodeResource(context.resources, product.imageRes)
+        if (bitmap != null) {
+            Palette.from(bitmap).generate { palette ->
+                palette?.vibrantSwatch?.let { vibrantColor = Color(it.rgb) }
+            }
+        }
+    }
+    // ==========================================
 
     var showBottomSheet by remember { mutableStateOf(false) }
     var userRating by remember { mutableIntStateOf(0) }
@@ -663,6 +769,13 @@ fun ProductDetailScreen(product: Product, onBack: () -> Unit) {
     var gramInput by remember { mutableStateOf("0") }
     var errorMessage by remember { mutableStateOf("") }
     val maxStockKg = 7.0
+
+    val bgColor = if (isDarkMode) Color(0xFF121212) else Color.White
+    val surfaceColor = if (isDarkMode) Color(0xFF1E1E1E) else Color.White
+    val infoCardColor = if (isDarkMode) Color(0xFF1E1E1E) else Color(0xFFF9F9F9)
+    val textColor = if (isDarkMode) Color.White else Color.Black
+    val subTextColor = if (isDarkMode) Color.LightGray else Color.DarkGray
+    val buttonControlColor = if (isDarkMode) Color(0xFF2C2C2C) else Color(0xFFF0F0F0)
 
     fun validateInput(newKg: String, newGram: String) {
         kgInput = newKg
@@ -696,27 +809,12 @@ fun ProductDetailScreen(product: Product, onBack: () -> Unit) {
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { },
-                navigationIcon = {
-                    IconButton(
-                        onClick = { onBack() },
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .background(Color.White, shape = CircleShape)
-                    ) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.DarkGray)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-            )
-        },
+        containerColor = bgColor,
         bottomBar = {
-            // Padding bawah ditambah ekstra banyak (80.dp) dan tombol di-set 0.75f lebarnya
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 80.dp, top = 8.dp),
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 80.dp, top = 8.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Button(
@@ -743,19 +841,48 @@ fun ProductDetailScreen(product: Product, onBack: () -> Unit) {
             }
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
+                .background(bgColor)
         ) {
-            // Latar Palette Manual digabung dengan Gambar Kotak (Desain Original)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(280.dp)
-                    .background(headerBackgroundColor) // BUG FIXED: Pakai warna background dari Map lu
+                    .height(310.dp)
+                    .background(
+                        brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                            colors = listOf(
+                                headerBackgroundColor,
+                                headerBackgroundColor.copy(alpha = 0.5f),
+                                bgColor
+                            )
+                        )
+                    )
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
             ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = surfaceColor,
+                        shadowElevation = 2.dp,
+                        modifier = Modifier.size(40.dp).clickable { onBack() }
+                    ) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", modifier = Modifier.padding(8.dp), tint = textColor)
+                    }
+                }
+
                 Image(
                     painter = painterResource(id = product.imageRes),
                     contentDescription = product.name,
@@ -767,84 +894,92 @@ fun ProductDetailScreen(product: Product, onBack: () -> Unit) {
                         .clip(RoundedCornerShape(24.dp))
                         .shadow(8.dp, RoundedCornerShape(24.dp))
                 )
-            }
-
-            Column(modifier = Modifier.padding(24.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = product.name,
-                        fontFamily = PoppinsFont,
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 28.sp
-                    )
-                    Text(
-                        text = "Rp ${product.price} / 1 kg",
-                        color = VFreshPrimary,
-                        fontFamily = PoppinsFont,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    for (i in 1..5) {
-                        Icon(
-                            imageVector = if (i <= userRating) Icons.Filled.Star else Icons.Outlined.Star,
-                            contentDescription = "Star $i",
-                            tint = if (i <= userRating) Color(0xFFFFD700) else Color.LightGray,
-                            modifier = Modifier
-                                .size(28.dp)
-                                .clickable { userRating = i }
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "4.8 (120 Ulasan)", fontFamily = NunitoFont, color = Color.Gray, fontSize = 15.sp)
-                }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                Text("Deskripsi", fontFamily = PoppinsFont, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.Black)
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "${product.name} segar berkualitas tinggi, langsung dipanen dari petani lokal. Cocok untuk memenuhi kebutuhan nutrisi keluarga Anda sehari-hari dengan kesegaran yang terjamin.",
-                    fontFamily = NunitoFont,
-                    fontSize = 15.sp,
-                    color = Color.DarkGray,
-                    lineHeight = 24.sp
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // KOTAK INFO SYARAT CHECKOUT (Diperbesar ukuran dan font-nya)
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9)),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
+                Column(modifier = Modifier.padding(horizontal = 24.dp)) {
                     Row(
-                        modifier = Modifier.padding(20.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Outlined.Info, contentDescription = "Info", tint = VFreshPrimary, modifier = Modifier.size(28.dp))
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column {
-                            Text("Syarat Checkout", fontFamily = PoppinsFont, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                            Text("Pesanan baru dapat diproses (checkout) jika total kuantitas belanja mencapai minimal 5 Kg.", fontFamily = NunitoFont, fontSize = 14.sp, color = Color.Gray)
+                        Text(
+                            text = product.name,
+                            fontFamily = PoppinsFont,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 28.sp,
+                            color = textColor
+                        )
+                        Text(
+                            text = "Rp ${product.price} / 1 kg",
+                            color = VFreshPrimary,
+                            fontFamily = PoppinsFont,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Slide 4: Rating Bar
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        for (i in 1..5) {
+                            Icon(
+                                imageVector = if (i <= userRating) Icons.Filled.Star else Icons.Outlined.Star,
+                    // ================================================
+
+                                contentDescription = "Star $i",
+                                tint = if (i <= userRating) Color(0xFFFFD700) else Color.LightGray,
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .clickable { userRating = i }
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = "4.8 (120 Ulasan)", fontFamily = NunitoFont, color = Color.Gray, fontSize = 15.sp)
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Text("Deskripsi", fontFamily = PoppinsFont, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = textColor)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "${product.name} segar berkualitas tinggi, langsung dipanen dari petani lokal. Cocok untuk memenuhi kebutuhan nutrisi keluarga Anda sehari-hari dengan kesegaran yang terjamin.",
+                        fontFamily = NunitoFont,
+                        fontSize = 15.sp,
+                        color = subTextColor,
+                        lineHeight = 24.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(end = 24.dp),
+                        colors = CardDefaults.cardColors(containerColor = infoCardColor),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(20.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Outlined.Info, contentDescription = "Info", tint = VFreshPrimary, modifier = Modifier.size(28.dp))
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text("Syarat Checkout", fontFamily = PoppinsFont, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = textColor)
+                                Text("Pesanan baru dapat diproses (checkout) jika total kuantitas belanja mencapai minimal 5 Kg.", fontFamily = NunitoFont, fontSize = 14.sp, color = subTextColor)
+                            }
                         }
                     }
-                }
 
-                Spacer(modifier = Modifier.height(140.dp))
+                    Spacer(modifier = Modifier.height(paddingValues.calculateBottomPadding() + 20.dp))
+                }
             }
         }
     }
 
+    // Slide 6: Bottom Sheet View
     if (showBottomSheet) {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         val focusManager = LocalFocusManager.current
@@ -856,8 +991,10 @@ fun ProductDetailScreen(product: Product, onBack: () -> Unit) {
         ModalBottomSheet(
             onDismissRequest = { showBottomSheet = false },
             sheetState = sheetState,
-            containerColor = Color.White
+            containerColor = surfaceColor
         ) {
+        // ========================================================
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -868,18 +1005,18 @@ fun ProductDetailScreen(product: Product, onBack: () -> Unit) {
                         focusManager.clearFocus()
                     }
             ) {
-                Text("Pilih Kuantitas", fontFamily = PoppinsFont, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.Black)
+                Text("Pilih Kuantitas", fontFamily = PoppinsFont, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = textColor)
                 Text("Stok tersedia: $maxStockKg Kg", fontFamily = NunitoFont, fontSize = 14.sp, color = Color.Gray)
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("Kilogram (Kg)", fontFamily = NunitoFont, fontWeight = FontWeight.SemiBold, fontSize = 17.sp, color = Color.DarkGray)
+                    Text("Kilogram (Kg)", fontFamily = NunitoFont, fontWeight = FontWeight.SemiBold, fontSize = 17.sp, color = subTextColor)
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Surface(shape = CircleShape, color = Color(0xFFF0F0F0), modifier = Modifier.size(40.dp).clickable {
+                        Surface(shape = CircleShape, color = buttonControlColor, modifier = Modifier.size(40.dp).clickable {
                             val currentKg = kgInput.toIntOrNull() ?: 0
                             if (currentKg > 0) validateInput((currentKg - 1).toString(), gramInput)
                         }) {
-                            Box(contentAlignment = Alignment.Center) { Text("-", fontWeight = FontWeight.Bold, fontSize = 24.sp) }
+                            Box(contentAlignment = Alignment.Center) { Text("-", fontWeight = FontWeight.Bold, fontSize = 24.sp, color = textColor) }
                         }
 
                         androidx.compose.foundation.text.BasicTextField(
@@ -887,7 +1024,7 @@ fun ProductDetailScreen(product: Product, onBack: () -> Unit) {
                             onValueChange = { validateInput(it, gramInput) },
                             textStyle = androidx.compose.ui.text.TextStyle(
                                 fontSize = 18.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
-                                color = if (errorMessage.contains("Kg", ignoreCase = true) || errorMessage.contains("stok", ignoreCase = true)) Color.Red else Color.Black
+                                color = if (errorMessage.contains("Kg", ignoreCase = true) || errorMessage.contains("stok", ignoreCase = true)) Color.Red else textColor
                             ),
                             keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
                             modifier = Modifier.width(60.dp).padding(horizontal = 8.dp)
@@ -897,7 +1034,6 @@ fun ProductDetailScreen(product: Product, onBack: () -> Unit) {
                             val currentKg = kgInput.toIntOrNull() ?: 0
                             validateInput((currentKg + 1).toString(), gramInput)
                         }) {
-                            // BUG FIXED: Tombol + warnanya hijau statis (VFreshPrimary)
                             Box(contentAlignment = Alignment.Center) { Text("+", fontWeight = FontWeight.Bold, fontSize = 24.sp, color = Color.White) }
                         }
                     }
@@ -906,13 +1042,13 @@ fun ProductDetailScreen(product: Product, onBack: () -> Unit) {
                 Spacer(modifier = Modifier.height(20.dp))
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("Gram (g)", fontFamily = NunitoFont, fontWeight = FontWeight.SemiBold, fontSize = 17.sp, color = Color.DarkGray)
+                    Text("Gram (g)", fontFamily = NunitoFont, fontWeight = FontWeight.SemiBold, fontSize = 17.sp, color = subTextColor)
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Surface(shape = CircleShape, color = Color(0xFFF0F0F0), modifier = Modifier.size(40.dp).clickable {
+                        Surface(shape = CircleShape, color = buttonControlColor, modifier = Modifier.size(40.dp).clickable {
                             val currentGram = gramInput.toIntOrNull() ?: 0
                             if (currentGram >= 50) validateInput(kgInput, (currentGram - 50).toString())
                         }) {
-                            Box(contentAlignment = Alignment.Center) { Text("-", fontWeight = FontWeight.Bold, fontSize = 24.sp) }
+                            Box(contentAlignment = Alignment.Center) { Text("-", fontWeight = FontWeight.Bold, fontSize = 24.sp, color = textColor) }
                         }
 
                         androidx.compose.foundation.text.BasicTextField(
@@ -920,7 +1056,7 @@ fun ProductDetailScreen(product: Product, onBack: () -> Unit) {
                             onValueChange = { validateInput(kgInput, it) },
                             textStyle = androidx.compose.ui.text.TextStyle(
                                 fontSize = 18.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
-                                color = if (errorMessage.contains("Gram", ignoreCase = true) || errorMessage.contains("stok", ignoreCase = true)) Color.Red else Color.Black
+                                color = if (errorMessage.contains("Gram", ignoreCase = true) || errorMessage.contains("stok", ignoreCase = true)) Color.Red else textColor
                             ),
                             keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
                             modifier = Modifier.width(60.dp).padding(horizontal = 8.dp)
@@ -930,7 +1066,6 @@ fun ProductDetailScreen(product: Product, onBack: () -> Unit) {
                             val currentGram = gramInput.toIntOrNull() ?: 0
                             validateInput(kgInput, (currentGram + 50).toString())
                         }) {
-                            // BUG FIXED: Tombol + warnanya hijau statis (VFreshPrimary)
                             Box(contentAlignment = Alignment.Center) { Text("+", fontWeight = FontWeight.Bold, fontSize = 24.sp, color = Color.White) }
                         }
                     }
@@ -943,7 +1078,6 @@ fun ProductDetailScreen(product: Product, onBack: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Tombol Simpan Keranjang
                 Button(
                     onClick = {
                         if (totalGrams == 0) {
@@ -954,15 +1088,14 @@ fun ProductDetailScreen(product: Product, onBack: () -> Unit) {
                     },
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     colors = ButtonDefaults.buttonColors(
-                        // BUG FIXED: Kalau aktif warnanya VFreshPrimary
-                        containerColor = if (isCartReady && errorMessage.isEmpty()) VFreshPrimary else Color(0xFFEEEEEE)
+                        containerColor = if (isCartReady && errorMessage.isEmpty()) VFreshPrimary else (if (isDarkMode) Color(0xFF333333) else Color(0xFFEEEEEE))
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
                         text = "Simpan ke Keranjang",
                         fontFamily = RobotoFont,
-                        color = if (isCartReady && errorMessage.isEmpty()) Color.White else Color.DarkGray,
+                        color = if (isCartReady && errorMessage.isEmpty()) Color.White else Color.Gray,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     )
@@ -970,26 +1103,24 @@ fun ProductDetailScreen(product: Product, onBack: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Tombol Checkout
                 Button(
                     onClick = {
                         if (!isCheckoutReady) {
                             errorMessage = "Maaf, minimal checkout 5 Kg"
                         } else if (errorMessage.isEmpty()) {
                             showBottomSheet = false
-                            // TODO: Ke halaman checkout
                         }
                     },
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isCheckoutReady && errorMessage.isEmpty()) VFreshPrimary else Color(0xFFE0E0E0)
+                        containerColor = if (isCheckoutReady && errorMessage.isEmpty()) VFreshPrimary else (if (isDarkMode) Color(0xFF444444) else Color(0xFFE0E0E0))
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
                         text = "Checkout",
                         fontFamily = RobotoFont,
-                        color = if (isCheckoutReady && errorMessage.isEmpty()) Color.White else Color.DarkGray,
+                        color = if (isCheckoutReady && errorMessage.isEmpty()) Color.White else Color.Gray,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     )

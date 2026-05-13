@@ -14,7 +14,7 @@ android {
     defaultConfig {
         applicationId = "com.example.practice1"
         minSdk = 24
-        targetSdk = 26
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
@@ -59,4 +59,5 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation("androidx.palette:palette-ktx:1.0.0")
+    implementation("androidx.compose.material:material-icons-extended")
 }
