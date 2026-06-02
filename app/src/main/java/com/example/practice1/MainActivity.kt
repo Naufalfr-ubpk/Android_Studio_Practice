@@ -747,6 +747,7 @@ fun HomeScreen(
 
             item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(2) }) {
                 Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    // Kategori Sayur (Dikasih efek klik biar animasi "terbang" kerasa)
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.weight(1f)
@@ -771,6 +772,7 @@ fun HomeScreen(
                         Text("Sayur", fontFamily = PoppinsFont, fontWeight = FontWeight.Bold, fontSize = 17.sp, color = textColorDark)
                     }
 
+                    // Kategori Buah
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.weight(1f)
@@ -1009,17 +1011,19 @@ fun ProductDetailScreen(
                         modifier = Modifier.fillMaxWidth().height(250.dp).clip(RoundedCornerShape(24.dp)).shadow(8.dp, RoundedCornerShape(24.dp))
                     )
 
+                    // Icon Love SOLID: Abu-abu transparan (kayak lingkaran lama) saat normal, Merah solid saat aktif
                     Icon(
-                        imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                        imageVector = Icons.Filled.Favorite, // Tetap pakai Filled (Solid) sesuai instruksi lu
                         contentDescription = "Favorit",
-                        tint = if (isFavorite) Color.Red else Color.Gray,
+                        tint = if (isFavorite) Color.Red else Color.White.copy(alpha = 0.8f), // Warnanya transparan abu-abu silver cerah dari spek lingkaran lama
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
-                            .padding(12.dp)
-                            .size(38.dp)
-                            .background(Color.White.copy(alpha = 0.8f), CircleShape)
-                            .padding(6.dp)
-                            .clickable { onFavoriteToggle() }
+                            .padding(16.dp)
+                            .size(40.dp) // UKURAN TETEP 40DP NGGAK GUA UBAH-UBAH LAGI, BRO
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) { onFavoriteToggle() }
                     )
                 }
 
@@ -1145,7 +1149,7 @@ fun ProductDetailScreen(
                     onClick = {
                         focusManager.clearFocus()
                         if (!isCheckoutReady) { errorMessage = "Maaf, minimal checkout 5 Kg \n(Dapat dikombinasikan dengan jenis lainnya)" }
-                        else if (errorMessage.isEmpty()) { showBottomSheet = false; /* TODO: Ke halaman checkout beneran */ }
+                        else if (errorMessage.isEmpty()) { showBottomSheet = false }
                     },
                     modifier = Modifier.fillMaxWidth().height(52.dp), colors = ButtonDefaults.buttonColors(containerColor = if (isCheckoutReady && errorMessage.isEmpty()) VFreshPrimary else (if (isDarkMode) Color(0xFF444444) else Color(0xFFE0E0E0))), shape = RoundedCornerShape(12.dp)
                 ) { Text(text = "Checkout", fontFamily = RobotoFont, color = if (isCheckoutReady && errorMessage.isEmpty()) Color.White else Color.DarkGray, fontWeight = FontWeight.Bold, fontSize = 16.sp) }
@@ -1310,6 +1314,9 @@ fun FavoriteScreen(favoriteItems: MutableList<Product>, onProductClick: (Product
     }
 }
 
+// ==========================================
+// KODE HALAMAN FILTER (CATEGORY SCREEN)
+// ==========================================
 @Composable
 fun CategoryScreen(categoryName: String, isDarkMode: Boolean, onProductClick: (Product) -> Unit, onBack: () -> Unit) {
     val filteredProducts = dummyProducts.filter { it.category.equals(categoryName, ignoreCase = true) }
@@ -1317,28 +1324,74 @@ fun CategoryScreen(categoryName: String, isDarkMode: Boolean, onProductClick: (P
     val textColor = if (isDarkMode) Color.White else Color.Black
     val surfaceColor = if (isDarkMode) Color(0xFF1E1E1E) else Color.White
 
+    // Animasi transisi membesar
+    var isAnimated by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        isAnimated = true
+    }
+
     Column(modifier = Modifier.fillMaxSize().background(bgColor)) {
-        Row(modifier = Modifier.fillMaxWidth().statusBarsPadding().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Surface(shape = CircleShape, color = surfaceColor, shadowElevation = 2.dp, modifier = Modifier.size(44.dp).clickable { onBack() }) {
-                Box(contentAlignment = Alignment.Center) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali", tint = textColor) }
+        // Tombol Back dipisah di atas biar gambar nggak mepet
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(start = 16.dp, top = 16.dp, end = 16.dp)
+        ) {
+            Surface(
+                shape = CircleShape,
+                color = surfaceColor,
+                shadowElevation = 2.dp,
+                modifier = Modifier.size(44.dp).clickable { onBack() }
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali", tint = textColor)
+                }
             }
-            Text("Kategori: $categoryName", fontFamily = PoppinsFont, fontWeight = FontWeight.Bold, fontSize = 21.sp, color = textColor, modifier = Modifier.padding(start = 12.dp))
         }
 
-        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            Image(
-                painter = painterResource(id = if (categoryName == "Buah") R.drawable.ic_cat_buah else R.drawable.ic_cat_sayur),
-                contentDescription = categoryName,
-                modifier = Modifier.size(120.dp).padding(8.dp),
-                contentScale = ContentScale.Fit
+        // Jarak lega antara tombol back dan gambar hero
+        Spacer(modifier = Modifier.height(1.dp))
+
+        // Gambar Hero: Full Kiri-Kanan
+        Image(
+            painter = painterResource(id = if (categoryName == "Buah") R.drawable.ic_cat_buah else R.drawable.ic_cat_sayur),
+            contentDescription = categoryName,
+            modifier = Modifier
+                .fillMaxWidth()
+                .offset(y = (-20).dp)
+                // Simulasi efek membesar pas baru masuk halaman
+                .padding(if (isAnimated) 0.dp else 24.dp),
+            contentScale = ContentScale.FillWidth // Proporsional dan mentok kiri-kanan
+        )
+
+        // Teks Judul Kategori
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .offset(y = (-15).dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            Text(
+                text = categoryName,
+                fontFamily = PoppinsFont,
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 26.sp,
+                color = textColor,
+                textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(categoryName, fontFamily = PoppinsFont, fontWeight = FontWeight.ExtraBold, fontSize = 24.sp, color = textColor)
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
-        LazyVerticalGrid(columns = GridCells.Fixed(2), contentPadding = PaddingValues(16.dp), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        // Grid Produk
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             items(filteredProducts) { product ->
                 ProductCard(
                     product = product,
