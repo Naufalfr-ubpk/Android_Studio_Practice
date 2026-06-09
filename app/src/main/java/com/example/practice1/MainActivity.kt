@@ -1011,20 +1011,43 @@ fun ProductDetailScreen(
                         modifier = Modifier.fillMaxWidth().height(250.dp).clip(RoundedCornerShape(24.dp)).shadow(8.dp, RoundedCornerShape(24.dp))
                     )
 
-                    // Icon Love SOLID: Abu-abu transparan (kayak lingkaran lama) saat normal, Merah solid saat aktif
-                    Icon(
-                        imageVector = Icons.Filled.Favorite, // Tetap pakai Filled (Solid) sesuai instruksi lu
-                        contentDescription = "Favorit",
-                        tint = if (isFavorite) Color.Red else Color.White.copy(alpha = 0.8f), // Warnanya transparan abu-abu silver cerah dari spek lingkaran lama
+                    // REVISI ICON LOVE: Proporsional & Optical Alignment
+                    Box(
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
-                            .padding(16.dp)
-                            .size(40.dp) // UKURAN TETEP 40DP NGGAK GUA UBAH-UBAH LAGI, BRO
+                            .padding(end = 16.dp, bottom = 16.dp) // Posisi sesuai custom lu
+                            .size(44.dp) // Ukuran lingkaran dinaikin jadi 44.dp
+                            .background(Color.White.copy(alpha = 0.8f), CircleShape)
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null
-                            ) { onFavoriteToggle() }
-                    )
+                            ) { onFavoriteToggle() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        // Pakai persentase (0.65f = 65%) biar otomatis menyesuaikan ukuran luar
+                        // Pakai offset 1.5.dp buat narik icon ke bawah biar mata ngelihatnya seimbang
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize(0.65f)
+                                .offset(y = 1.5.dp)
+                        ) {
+                            // Lapisan 1: Isian (Fill)
+                            Icon(
+                                imageVector = Icons.Filled.Favorite,
+                                contentDescription = "Favorit",
+                                tint = if (isFavorite) VFreshPrimary else Color.White,
+                                modifier = Modifier.fillMaxSize()
+                            )
+
+                            // Lapisan 2: Stroke (Garis Tepi)
+                            Icon(
+                                imageVector = Icons.Outlined.FavoriteBorder,
+                                contentDescription = null,
+                                tint = Color(0xFFA0A0A0),
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
