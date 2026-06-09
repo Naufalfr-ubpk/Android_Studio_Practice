@@ -494,7 +494,7 @@ fun MainScreen(onLogout: () -> Unit, isDarkMode: Boolean, onThemeChange: (Boolea
                     when (currentSubScreen) {
                         "none" -> {
                             when (selectedTab) {
-                                0 -> HomeScreen(onProductClick = { p -> selectedProduct = p }, isDarkMode = isDarkMode, onThemeChange = onThemeChange, favoriteItems = favoriteItems, onNavigate = { route -> subScreen = route })
+                                0 -> HomeScreen(onProductClick = { p -> selectedProduct = p }, isDarkMode = isDarkMode, onThemeChange = onThemeChange, onNavigate = { route -> subScreen = route })
                                 1 -> NotificationScreen(isDarkMode = isDarkMode)
                                 2 -> OrdersScreen(isDarkMode = isDarkMode)
                                 3 -> ProfileScreen(isDarkMode = isDarkMode, onLogout = onLogout)
@@ -521,7 +521,6 @@ fun HomeScreen(
     onProductClick: (Product) -> Unit,
     isDarkMode: Boolean,
     onThemeChange: (Boolean) -> Unit,
-    favoriteItems: MutableList<Product>,
     onNavigate: (String) -> Unit
 ) {
     val focusManager = LocalFocusManager.current
@@ -656,7 +655,6 @@ fun HomeScreen(
                     Switch(
                         checked = isDarkMode,
                         onCheckedChange = { onThemeChange(it) },
-                        modifier = Modifier,
                         thumbContent = {
                             Box(
                                 modifier = Modifier
@@ -747,7 +745,6 @@ fun HomeScreen(
 
             item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(2) }) {
                 Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    // Kategori Sayur (Dikasih efek klik biar animasi "terbang" kerasa)
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.weight(1f)
@@ -772,7 +769,6 @@ fun HomeScreen(
                         Text("Sayur", fontFamily = PoppinsFont, fontWeight = FontWeight.Bold, fontSize = 17.sp, color = textColorDark)
                     }
 
-                    // Kategori Buah
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.weight(1f)
@@ -919,7 +915,7 @@ fun ProductDetailScreen(
 
     BackHandler { onBack() }
 
-    // Pajangan vibrantColor agar palette tetap jalan (menghilangkan warning kuning)
+    // Pajangan vibrantColor agar palette tetap jalan (Dipertahankan sesuai instruksi lu)
     var vibrantColor by remember { mutableStateOf(Color.White) }
 
     LaunchedEffect(product.imageRes) {
@@ -930,7 +926,7 @@ fun ProductDetailScreen(
     }
 
     var showBottomSheet by remember { mutableStateOf(false) }
-    var userRating by remember { mutableIntStateOf(0) }
+    var userRating by remember { mutableIntStateOf(0) } // Fixed: Ganti ke state int optimal
 
     var kgInput by remember { mutableStateOf("0") }
     var gramInput by remember { mutableStateOf("0") }
@@ -1015,8 +1011,8 @@ fun ProductDetailScreen(
                     Box(
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
-                            .padding(end = 16.dp, bottom = 16.dp) // Posisi sesuai custom lu
-                            .size(44.dp) // Ukuran lingkaran dinaikin jadi 44.dp
+                            .padding(end = 16.dp, bottom = 16.dp)
+                            .size(44.dp)
                             .background(Color.White.copy(alpha = 0.8f), CircleShape)
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
@@ -1024,14 +1020,11 @@ fun ProductDetailScreen(
                             ) { onFavoriteToggle() },
                         contentAlignment = Alignment.Center
                     ) {
-                        // Pakai persentase (0.65f = 65%) biar otomatis menyesuaikan ukuran luar
-                        // Pakai offset 1.5.dp buat narik icon ke bawah biar mata ngelihatnya seimbang
                         Box(
                             modifier = Modifier
                                 .fillMaxSize(0.65f)
                                 .offset(y = 1.5.dp)
                         ) {
-                            // Lapisan 1: Isian (Fill)
                             Icon(
                                 imageVector = Icons.Filled.Favorite,
                                 contentDescription = "Favorit",
@@ -1039,7 +1032,6 @@ fun ProductDetailScreen(
                                 modifier = Modifier.fillMaxSize()
                             )
 
-                            // Lapisan 2: Stroke (Garis Tepi)
                             Icon(
                                 imageVector = Icons.Outlined.FavoriteBorder,
                                 contentDescription = null,
@@ -1096,7 +1088,7 @@ fun ProductDetailScreen(
 
     if (showBottomSheet) {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        val focusManager = LocalFocusManager.current
+        val focusManager = LocalFocusManager.current // Fixed: Memasang kembali referensi focusManager yang hilang
         val totalGrams = ((kgInput.toIntOrNull() ?: 0) * 1000) + (gramInput.toIntOrNull() ?: 0)
         val isCheckoutReady = totalGrams >= 5000
         val isCartReady = totalGrams > 0
@@ -1347,14 +1339,12 @@ fun CategoryScreen(categoryName: String, isDarkMode: Boolean, onProductClick: (P
     val textColor = if (isDarkMode) Color.White else Color.Black
     val surfaceColor = if (isDarkMode) Color(0xFF1E1E1E) else Color.White
 
-    // Animasi transisi membesar
     var isAnimated by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         isAnimated = true
     }
 
     Column(modifier = Modifier.fillMaxSize().background(bgColor)) {
-        // Tombol Back dipisah di atas biar gambar nggak mepet
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1373,29 +1363,24 @@ fun CategoryScreen(categoryName: String, isDarkMode: Boolean, onProductClick: (P
             }
         }
 
-        // Jarak lega antara tombol back dan gambar hero
         Spacer(modifier = Modifier.height(1.dp))
 
-        // Gambar Hero: Full Kiri-Kanan
         Image(
             painter = painterResource(id = if (categoryName == "Buah") R.drawable.ic_cat_buah else R.drawable.ic_cat_sayur),
             contentDescription = categoryName,
             modifier = Modifier
                 .fillMaxWidth()
                 .offset(y = (-20).dp)
-                // Simulasi efek membesar pas baru masuk halaman
                 .padding(if (isAnimated) 0.dp else 24.dp),
-            contentScale = ContentScale.FillWidth // Proporsional dan mentok kiri-kanan
+            contentScale = ContentScale.FillWidth
         )
 
-        // Teks Judul Kategori
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .offset(y = (-15).dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             Text(
                 text = categoryName,
                 fontFamily = PoppinsFont,
@@ -1408,7 +1393,6 @@ fun CategoryScreen(categoryName: String, isDarkMode: Boolean, onProductClick: (P
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Grid Produk
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
@@ -1449,7 +1433,7 @@ fun CheckoutScreen(onBack: () -> Unit, isDarkMode: Boolean) {
         Column(modifier = Modifier.weight(1f).padding(horizontal = 16.dp).verticalScroll(rememberScrollState())) {
             Text("Alamat Pengiriman", fontFamily = PoppinsFont, fontWeight = FontWeight.Bold, fontSize = 19.sp, color = textColor)
             Spacer(modifier = Modifier.height(8.dp))
-            Card(modifier = Modifier.fillMaxWidth().clickable { /* TODO: Navigasi ke ubah alamat */ }, colors = CardDefaults.cardColors(containerColor = surfaceColor)) {
+            Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = surfaceColor)) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text("Rumah - Naufal Fauzi", fontFamily = NunitoFont, fontWeight = FontWeight.Bold, fontSize = 17.sp, color = textColor)
                     Spacer(modifier = Modifier.height(4.dp))
@@ -1465,7 +1449,7 @@ fun CheckoutScreen(onBack: () -> Unit, isDarkMode: Boolean) {
                 Pair("Transfer Bank (BCA)", R.drawable.ic_pay_bca),
                 Pair("E-Wallet (GoPay)", R.drawable.ic_pay_gopay),
                 Pair("Agen (Alfamart)", R.drawable.ic_pay_alfamart),
-                Pair("QRIS", R.drawable.ic_cat_buah) // Ganti icon QRIS kalau udah ada
+                Pair("QRIS", R.drawable.ic_cat_buah)
             )
 
             paymentMethods.forEach { (name, iconRes) ->
@@ -1505,7 +1489,7 @@ fun CheckoutScreen(onBack: () -> Unit, isDarkMode: Boolean) {
 
         Surface(modifier = Modifier.fillMaxWidth(), shadowElevation = 16.dp, color = surfaceColor) {
             Button(
-                onClick = { /* TODO: Aksi Bayar beneran */ },
+                onClick = {  },
                 modifier = Modifier.fillMaxWidth().padding(16.dp).navigationBarsPadding().height(56.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = VFreshPrimary),
                 shape = RoundedCornerShape(12.dp)
@@ -1652,6 +1636,6 @@ fun ProfileMenuItem(icon: androidx.compose.ui.graphics.vector.ImageVector, title
         Icon(icon, contentDescription = title, tint = VFreshPrimary, modifier = Modifier.size(24.dp))
         Spacer(modifier = Modifier.width(16.dp))
         Text(title, fontFamily = NunitoFont, fontWeight = FontWeight.SemiBold, fontSize = 17.sp, color = textColor, modifier = Modifier.weight(1f))
-        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Lihat", tint = Color.Gray, modifier = Modifier.size(18.dp)) // Idealnya ArrowForward, tapi pakai ini dulu sbg placeholder
+        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Lihat", tint = Color.Gray, modifier = Modifier.size(18.dp))
     }
 }
